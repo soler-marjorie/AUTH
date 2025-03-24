@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block body %}
+    <h1>Inscription</h1>
+
+    <turbo-frame id="addAccount">
+        {{ form(form) }}
+        
+        {% include "./composants/_toast.html.twig"%}
+    </turbo-frame>
+{% endblock %}
