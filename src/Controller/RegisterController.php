@@ -10,6 +10,7 @@ use App\Entity\Account;
 use App\Repository\AccountRepository;
 use App\Form\RegisterType;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class RegisterController extends AbstractController
@@ -17,7 +18,8 @@ final class RegisterController extends AbstractController
     public function __construct(
         private readonly AccountRepository $accountRepository,
         private readonly EntityManagerInterface $em,
-        private readonly ValidatorInterface $validator
+        private readonly ValidatorInterface $validator,
+        private readonly UserPasswordHasherInterface $passwordHasher
     ){}
 
 
@@ -35,14 +37,15 @@ final class RegisterController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()){
+            /*  $errors = $validator->validate($account);
             //Test si l'entité est valide (validation)
-            $errors = $this->validator->validate($account);
-            if(count($errors) > 0){
+            if(count($errors) > 0) {
                 $msg = $errors[0]->getMessage();
                 $type = "warning";
-            }
+            }  */
             //Sinon on ajoute en BDD
-            else{
+            //else{
+
                 //Test si le compte existe déjà
                 if(!$this->accountRepository->findOneBy(["email"=> $account->getEmail()])){
                     $account->setRoles(['ROLE_USER']);
@@ -56,8 +59,8 @@ final class RegisterController extends AbstractController
                         $msg = "Ce compte existe déjà";
                         $type = "danger";
                 }
-            }
-            $this->addFlash($type, $msg);
+                $this->addFlash($type, $msg);
+            //}
         }
 
         //Passer à la vue

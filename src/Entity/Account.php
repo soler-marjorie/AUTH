@@ -33,15 +33,20 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
-    #[Assert\PasswordStrength([
-        'minLength' => 8,
-        'message' => 'Le mot de passe doit contenir au moins 8 caractères dont 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial'
-    ])]
+    #[Assert\Regex(
+        pattern: "/(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}/",
+        match: false,
+        message: 'Le mot de passe doit contenir lettres min, maj, nombre et 8 caractères',
+    )]
+    #[Assert\NotCompromisedPassword(
+        message:"Le mot de passe est compromis"
+    )]
     private ?string $password = null;
 
     #[ORM\Column(length: 50)]
     #[Assert\NotBlank(
         min: 2,
+        max: 50,
         message: 'Le prénom est obligatoire'
     )]
     private ?string $firstname = null;
@@ -49,6 +54,7 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50)]
     #[Assert\NotBlank(
         min: 2,
+        max: 50,
         message: 'Le nom est obligatoire'
     )]
     private ?string $lastname = null;

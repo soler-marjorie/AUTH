@@ -21,11 +21,14 @@ class RegisterType extends AbstractType
                 'empty_data' => "",
                 'required' => false
             ])
-            ->add('lastname', TextType::class)
+            ->add('lastname', TextType::class, [
+                'empty_data' => "",
+                'required' => false
+            ])
             ->add('email', EmailType::class)
             ->add('password', RepeatedType::class, [
                 'type' => PasswordType::class,
-                'first_options'  => ['label' => 'Password', 'hash_property_path' => 'password'],
+                'first_options'  => ['label' => 'Password'],
                 'second_options' => ['label' => 'Repeat Password'],
                 'mapped' => false,
             ])
