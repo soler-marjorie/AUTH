@@ -16,6 +16,11 @@ class EmailController extends AbstractController
     #[Route('/email', name: 'email')]
     public function index(): Response
     {
-        return new Response($this->emailService->getEmailConfig());
+        $template = $this->render('email/index.html.twig', [
+            'subject'=> "Objet du message",
+            'body'=> "Contenu du message"
+        ]);
+        $this->emailService->sendEmail('soler.marjorie81@gmail.com', 'test', '$template->getContent()');
+        return new Response('Email envoyé');
     }
 }

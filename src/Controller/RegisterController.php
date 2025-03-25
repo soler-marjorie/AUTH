@@ -31,6 +31,9 @@ final class RegisterController extends AbstractController
 
         //Créer un onjet account
         $account = new Account();
+
+        $account->setStatus(false); //Par défaut le compte est désactivé
+
         //Créer un objet register type (formulaire)
         $form = $this->createForm(RegisterType::class, $account);
         //Récypérer le résulat de la requête 
@@ -67,5 +70,10 @@ final class RegisterController extends AbstractController
         return $this->render('register/addAccount.html.twig', [
             'form' => $form,
         ]);
+    }
+
+    #[Route('/activate/{id}', name: 'app_activate_Id')]
+    public function activate(int $id){
+        $this->accountRepository->findOneBy(["id"=> $id])->setStatus(true);
     }
 }
