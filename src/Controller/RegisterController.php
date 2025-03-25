@@ -12,6 +12,7 @@ use App\Form\RegisterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Service\UtilsService;
 
 final class RegisterController extends AbstractController
 {
@@ -19,7 +20,8 @@ final class RegisterController extends AbstractController
         private readonly AccountRepository $accountRepository,
         private readonly EntityManagerInterface $em,
         private readonly ValidatorInterface $validator,
-        private readonly UserPasswordHasherInterface $passwordHasher
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly UtilsService $utilsService
     ){}
 
 
@@ -38,30 +40,23 @@ final class RegisterController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()){
-            /*  $errors = $validator->validate($account);
-            //Test si l'entité est valide (validation)
-            if(count($errors) > 0) {
-                $msg = $errors[0]->getMessage();
-                $type = "warning";
-            }  */
-            //Sinon on ajoute en BDD
-            //else{
+            
+            //Test si le compte existe déjà
+            if(!$this->accountRepository->findOneBy(["email"=> $account->getEmail()])){
+                $account->setStatus(false); //Par défaut le compte est désactivé
+                $account->setRoles(['ROLE_USER']);
+                $this->em->persist($account);
+                $this->em->flush();
+                $msg = "Votre compte a été créé avec succès";
+                $type = "success";
 
-                //Test si le compte existe déjà
-                if(!$this->accountRepository->findOneBy(["email"=> $account->getEmail()])){
-                    $account->setRoles(['ROLE_USER']);
-                    $this->em->persist($account);
-                    $this->em->flush();
-                    $msg = "Votre compte a été créé avec succès";
-                    $type = "success";
-
-                } 
-                else{
-                        $msg = "Ce compte existe déjà";
-                        $type = "danger";
-                }
-                $this->addFlash($type, $msg);
-            //}
+            } 
+            else{
+                    $msg = "Ce compte existe déjà";
+                    $type = "danger";
+            }
+            $this->addFlash($type, $msg);
+            
         }
 
         //Passer à la vue
@@ -72,6 +67,20 @@ final class RegisterController extends AbstractController
 
     #[Route('/activate/{id}', name: 'app_activate_Id')]
     public function activate(mixed $id){
-        $this->accountRepository->findOneBy(["id"=> $id])->setStatus(true);
+        try{
+            $id = $this->utilsService->decodeBase64($id);
+            if(is_numeric($id)){
+                $account = $this->accountRepository->findOneBy(["id"=> $id]);
+                if(!$account->isStatus()){
+                    $account->setStatus(true);
+                    $this->em->persist($account);
+                    $this->em->flush();
+                    $msg = "compte activé";
+                }
+            }
+        } catch(\Exception $e){
+            $this->addFlash("warning", $e->getMessage());
+        }
+        return $this->redirect('app_home');
     }
 }

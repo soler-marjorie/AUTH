@@ -6,9 +6,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use App\Repository\AccountRepository;
 
 class SecurityController extends AbstractController
 {
+    public function __construct(
+        private readonly AccountRepository $accountRepository
+    ) {}
+
     #[Route(path: '/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
@@ -24,9 +29,25 @@ class SecurityController extends AbstractController
         ]);
     }
 
+     //Méthode qui vérifie l'activation du compte
+     #[Route(path: '/verif', name: 'app_security_verif')]
+     public function verif(): Response
+     {
+         //Récupérer l'utilisateur connecté
+         $user = $this->getUser();
+         //Tester si le compte est activé
+         if($user->isStatus() == false) {
+             //Redirection vers la route de déconnexion
+             return $this->redirectToRoute('app_logout');
+         }
+         //Redirection vers la page d'accueil
+         return $this->redirectToRoute('app_home');
+     }
+
     #[Route(path: '/logout', name: 'app_logout')]
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
+    
 }
